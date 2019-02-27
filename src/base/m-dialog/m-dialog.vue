@@ -6,7 +6,7 @@
         <div class="m-dialog-content">
           <div class="m-dialog-head" v-text="headText"></div>
           <slot>
-            <div class="m-dialo-text" v-html="bodyText"></div>
+            <div class="m-dialog-text" v-html="bodyText"></div>
           </slot>
           <div class="m-dialog-btns">
             <div class="m-btn-cancel" v-if="dialogType!=='alert'" v-text="cancelBtnText" @click="cancel"></div>
@@ -93,7 +93,7 @@ export default {
 }
 </script>
 <style lang="less" scoped>
-  @import '@/assets/css/var';
+  @import '../../assets/css/var';
 
   @dialog-prefix-cls: m-dialog;
   .@{dialog-prefix-cls}-box {

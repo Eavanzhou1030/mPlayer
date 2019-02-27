@@ -12,3 +12,7 @@ vue中图片的懒加载插件
 
 toast-fade的css类的定义
 
+### slot的用法，在m-dialog中的使用
+
+
+

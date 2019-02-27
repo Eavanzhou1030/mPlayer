@@ -1,12 +1,12 @@
 <template>
-  <!-- 进度条拖动 -->
-  <div class="mProgress" ref="mProgress" @click="barClick">
-    <div class="mProgress-bar"></div>
-    <div class="mProgress-outer" ref="mPrecentProgress"></div>
-    <div class="mProgress-inner" ref="mProgressInner">
-      <div class="mProgress-dot" @mousedown="barDown" @touchstart.prevent="barDown"></div>
+    <!-- 进度拖动条 -->
+    <div class="mProgress" ref="mProgress" @click="barClick">
+      <div class="mProgress-bar"></div>
+      <div class="mProgress-outer" ref="mPercentProgress"></div>
+      <div class="mProgress-inner" ref="mProgressInner">
+        <div class="mProgress-dot" @mousedown="barDown" @touchstart.prevent="barDown"></div>
+      </div>
     </div>
-  </div>
 </template>
 <script>
 const dotWidth = 10
@@ -16,29 +16,26 @@ export default {
     return {
       move: {
         status: false, // 是否可拖动
-        startX: 0, // 记录最开始点击的X坐标
-        left: 0, // 记录当前已经移动的位置
+        startX: 0, // 记录开始点击的X坐标
+        left: 0,  // 记录当前已经移动的距离
       }
     }
   },
   props: {
-    // 进度值一
+    // 进度一
     percent: {
       type: [Number],
       default: 0
     },
-    // 进度值二(歌曲缓冲进度使用)
+    // 进度二(歌曲缓冲进度使用)
     percentProgress: {
       type: [Number],
       default: 0
     }
   },
-  watch: {
-
-  },
   mounted() {
     this.$nextTick(() => {
-      this.bindEvents()
+      this.unbindEvents()
       const barWidth = this.$refs.mProgress.clientWidth - dotWidth
       const offsetWidth = this.percent * barWidth
       this.moveSlide(offsetWidth)
@@ -55,7 +52,7 @@ export default {
     },
     // 移除绑定事件
     unbindEvents() {
-      document.removeEventListener('mouseover', this.barMove)
+      document.removeEventListener('mousemove', this.barMove)
       document.removeEventListener('mouseup', this.barUp)
 
       document.removeEventListener('touchmove', this.barMove)
@@ -71,23 +68,51 @@ export default {
     // 鼠标按下事件
     barDown(e) {
       this.move.status = true
+      this.move.startX = e.clientX || e.touches[0].pageX
+      this.move.left = this.$refs.mProgressInner.clientWidth
     },
-    // 鼠标触摸/移动事件
+    // 鼠标/触摸移动事件
     barMove(e) {
-
+      if(!this.move.status) {
+        return false
+      }
+      let endX = e.clientX || e.touches[0].pageX
+      let dist = endX - this.move.startX
+      let offsetWidth = Math.min(this.$refs.mProgress.clientWidth - dotWidth, Math.max(0, this.move.left + dist))
+      this.moveSlide(offsetWidth)
+      this.commitPercent()
     },
-    // 鼠标触摸/释放事件
+    // 鼠标/触摸释放事件
     barUp(e) {
-
+      e.stopPropagation()
+      this.move.status = false
     },
     // 移动滑块
     moveSlide(offsetWidth) {
-
+      this.$refs.mProgressInner.style.width = `${offsetWidth}px`
     },
     // 修改percent
     commitPercent() {
-
+      let lineWidth = this.$refs.mProgress.clientWidth - dotWidth
+      let percent = this.$refs.mProgressInner.clientWidth / lineWidth
+      this.$emit('percentChange', percent)
     }
+  },
+  watch: {
+    percent(newPercent) {
+      if(newPercent >= 0 && !this.move.status) {
+        const barWidth = this.$refs.mProgress.clientWidth - dotWidth
+        const offsetWidth = newPercent * barWidth
+        this.moveSlide(offsetWidth)
+      }
+    },
+    percentProgress(newValue) {
+      let offsetWidth = this.$refs.mProgress.clientWidth * newValue
+      this.$refs.mPercentProgress.style.width = `${offsetWidth}px`
+    }
+  },
+  beforeDestroy() {
+    this.unbindEvents()
   }
 }
 </script>
@@ -130,7 +155,7 @@ export default {
         width: 10px;
         height: 10px;
         border-radius: 50%;
-        background-color: @dot_color;
+        background-color: @dot-color;
         transform: translateY(-50%);
       }
     }
